@@ -32,6 +32,8 @@ function normalizeCategoryName(name: string) {
   return name.trim().replace(/\s+/g, " ");
 }
 
+type CategoryRelation = { name: string };
+
 type TransactionRow = {
   id: string;
   amount: string | number;
@@ -39,7 +41,7 @@ type TransactionRow = {
   description: string | null;
   transaction_date: string;
   created_at: string;
-  category: { name: string } | null;
+  category: CategoryRelation | CategoryRelation[] | null;
 };
 
 type AssetRow = {
@@ -246,13 +248,25 @@ function buildSpendingByCategory(
     .sort((a, b) => b.amount - a.amount);
 }
 
+function extractCategoryName(category: TransactionRow["category"]) {
+  if (!category) {
+    return null;
+  }
+
+  if (Array.isArray(category)) {
+    return category[0]?.name ?? null;
+  }
+
+  return category.name ?? null;
+}
+
 function mapTransactionRows(rows: TransactionRow[]): TransactionRecord[] {
   return rows.map((row) => ({
     id: row.id,
     amount: Number(row.amount),
     type: row.type,
     description: row.description,
-    category: row.category?.name ?? null,
+    category: extractCategoryName(row.category),
     transactionDate: row.transaction_date,
     createdAt: row.created_at,
   }));
