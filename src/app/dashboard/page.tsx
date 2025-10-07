@@ -209,7 +209,7 @@ export default function DashboardPage() {
           </p>
         </header>
         <Suspense fallback={<EmptyDashboard message="Loading your dashboard?" />}>
-          {/* @ts-expect-error Async Server Component */}
+          
           <DashboardBody />
         </Suspense>
       </div>
