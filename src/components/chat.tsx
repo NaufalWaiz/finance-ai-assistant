@@ -1,10 +1,30 @@
 "use client";
 
+import { useCallback, useEffect, useRef } from "react";
 import { useChat } from "ai/react";
+import { Bot, Loader2, NotebookPen, User } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { AlertCircle, Bot, User } from "lucide-react";
+import { Input } from "@/components/ui/input";
+
+const examplePrompts = [
+  "Logged a $15 coffee with friends yesterday",
+  "I received my $2,800 paycheck today",
+  "Transferred $200 to my savings account",
+];
+
+type RoleLabel = {
+  role: "user" | "assistant" | "system" | "tool";
+  label: string;
+};
+
+const ROLE_LABELS: Record<RoleLabel["role"], RoleLabel["label"]> = {
+  user: "You",
+  assistant: "LedgerLens",
+  system: "System",
+  tool: "LedgerLens",
+};
 
 export default function Chat() {
   const {
@@ -14,92 +34,121 @@ export default function Chat() {
     handleSubmit,
     error,
     isLoading: chatLoading,
+    append,
+    setInput,
   } = useChat({
-    onError: (error) => {
-      console.error("Chat error:", error);
+    onError: (chatError) => {
+      console.error("Chat error:", chatError);
     },
   });
 
+  const scrollAnchorRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    scrollAnchorRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, chatLoading]);
+
+  const handleExample = useCallback(
+    async (prompt: string) => {
+      setInput("");
+      await append({ role: "user", content: prompt });
+    },
+    [append, setInput],
+  );
+
   return (
-    <div className="flex flex-col w-full max-w-2xl mx-auto">
-      <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold mb-2">🤖 AI Chat</h2>
-        <p className="text-gray-600 dark:text-gray-400 text-sm">
-          Powered by OpenAI GPT-4o • Protected by Clerk Authentication
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <div className="text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
+          <NotebookPen className="h-6 w-6" />
+        </div>
+        <h2 className="mt-3 text-2xl font-semibold text-slate-900 dark:text-white">
+          Log transactions with your finance copilot
+        </h2>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+          Share income, expenses, and transfers in plain language. LedgerLens will
+          save the details to your secure ledger and offer quick guidance.
         </p>
       </div>
 
       {error && (
-        <Card className="p-4 border-red-200 bg-red-50 dark:bg-red-900/20 mb-4">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-600" />
-            <span className="text-red-700 dark:text-red-300 text-sm">
-              {error.message ||
-                "An error occurred while processing your request."}
-            </span>
-          </div>
+        <Card className="border-red-200 bg-red-50/70 p-4 text-sm text-red-600 dark:border-red-400/40 dark:bg-red-900/20 dark:text-red-200">
+          {error.message || "An unexpected error occurred while processing your request."}
         </Card>
       )}
 
-      <div className="space-y-4 mb-4 min-h-[400px] max-h-[600px] overflow-y-auto">
-        {messages.length === 0 ? (
-          <Card className="p-6 text-center border-dashed">
-            <Bot className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Start a conversation
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Ask me anything! I&apos;m here to help with coding, questions, or
-              just chat.
-            </p>
-          </Card>
-        ) : (
-          messages.map((m) => (
-            <Card key={m.id} className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                {m.role === "user" ? (
-                  <User className="w-4 h-4 text-blue-600" />
-                ) : (
-                  <Bot className="w-4 h-4 text-green-600" />
-                )}
-                <span className="font-semibold text-sm">
-                  {m.role === "user" ? "You" : "AI Assistant"}
-                </span>
-              </div>
-              <div className="whitespace-pre-wrap text-sm leading-relaxed pl-6">
-                {m.content}
-              </div>
-            </Card>
-          ))
-        )}
-
-        {chatLoading && (
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Bot className="w-4 h-4 text-green-600" />
-              <span className="font-semibold text-sm">AI Assistant</span>
-            </div>
-            <div className="pl-6">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.1s" }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                  style={{ animationDelay: "0.2s" }}
-                ></div>
-              </div>
-            </div>
-          </Card>
-        )}
+      <div className="flex flex-wrap gap-2">
+        {examplePrompts.map((prompt) => (
+          <Button
+            key={prompt}
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="whitespace-nowrap"
+            onClick={() => handleExample(prompt)}
+            disabled={chatLoading}
+          >
+            {prompt}
+          </Button>
+        ))}
       </div>
 
-      <form onSubmit={handleSubmit} className="flex space-x-2">
+      <div className="space-y-4 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+        {messages.length === 0 && !chatLoading ? (
+          <div className="flex flex-col items-center gap-3 py-12 text-center text-sm text-slate-600 dark:text-slate-300">
+            <Bot className="h-6 w-6 text-emerald-500" />
+            <p>
+              Try messages like 
+              <span className="font-semibold">Spent $42 on groceries today</span>
+              or 
+              <span className="font-semibold">Earned $550 from freelance work last Friday.</span>
+            </p>
+            <p>
+              LedgerLens will file the transaction and suggest ways to keep your goals on track.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {messages.map((message) => (
+              <Card
+                key={message.id}
+                className="border-slate-200/60 bg-white/90 p-4 dark:border-slate-800/60 dark:bg-slate-900/70"
+              >
+                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  {message.role === "user" ? (
+                    <User className="h-4 w-4 text-emerald-500" />
+                  ) : (
+                    <Bot className="h-4 w-4 text-emerald-500" />
+                  )}
+                  <span>{ROLE_LABELS[message.role]}</span>
+                </div>
+                <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-700 dark:text-slate-200">
+                  {message.content}
+                </div>
+              </Card>
+            ))}
+
+            {chatLoading && (
+              <Card className="border-slate-200/60 bg-white/90 p-4 dark:border-slate-800/60 dark:bg-slate-900/70">
+                <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <Bot className="h-4 w-4 text-emerald-500" />
+                  <span>LedgerLens</span>
+                </div>
+                <div className="mt-3 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Working on your update...
+                </div>
+              </Card>
+            )}
+          </div>
+        )}
+        <div ref={scrollAnchorRef} />
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
           value={input}
-          placeholder="Type your message..."
+          placeholder="Describe a transaction or ask for advice..."
           onChange={handleInputChange}
           className="flex-1"
           disabled={chatLoading}

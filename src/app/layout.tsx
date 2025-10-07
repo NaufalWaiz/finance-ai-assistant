@@ -23,9 +23,12 @@ const parkinsans = Parkinsans({
 });
 
 export const metadata: Metadata = {
-  title: "CodeGuide Starter Kit",
+  title: {
+    default: "LedgerLens | AI Finance Copilot",
+    template: "%s | LedgerLens",
+  },
   description:
-    "A modern Next.js starter with TypeScript, TailwindCSS, shadcn/ui, Vercel AI SDK, Clerk, and Supabase",
+    "LedgerLens helps you capture spending, monitor cash flow, and surface AI guidance for smarter money moves.",
 };
 
 export default function RootLayout({
