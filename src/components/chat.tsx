@@ -15,7 +15,7 @@ const examplePrompts = [
 ];
 
 type RoleLabel = {
-  role: "user" | "assistant" | "system" | "tool";
+  role: "user" | "assistant" | "system" | "tool" | "data";
   label: string;
 };
 
@@ -24,6 +24,7 @@ const ROLE_LABELS: Record<RoleLabel["role"], RoleLabel["label"]> = {
   assistant: "LedgerLens",
   system: "System",
   tool: "LedgerLens",
+  data: "LedgerLens",
 };
 
 export default function Chat() {
@@ -120,7 +121,7 @@ export default function Chat() {
                   ) : (
                     <Bot className="h-4 w-4 text-emerald-500" />
                   )}
-                  <span>{ROLE_LABELS[message.role]}</span>
+                  <span>{ROLE_LABELS[(message.role as RoleLabel["role"]) ?? "assistant"]}</span>
                 </div>
                 <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-700 dark:text-slate-200">
                   {message.content}
