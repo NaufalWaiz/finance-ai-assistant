@@ -10,7 +10,18 @@ import type {
   TransactionType,
 } from "@/types/finance";
 
-type SupabaseAny = SupabaseClient<any, any, any>;
+type AnySupabaseSchema = {
+  Tables: Record<string, unknown>;
+  Views: Record<string, unknown>;
+  Functions: Record<string, unknown>;
+  Enums: Record<string, unknown>;
+  CompositeTypes: Record<string, unknown>;
+};
+
+type AnySupabaseDatabase = Record<string, AnySupabaseSchema>;
+
+type SupabaseAny = SupabaseClient<AnySupabaseDatabase>;
+
 
 const MONTH_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",
