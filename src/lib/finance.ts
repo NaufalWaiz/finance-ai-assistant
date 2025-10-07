@@ -10,7 +10,7 @@ import type {
   TransactionType,
 } from "@/types/finance";
 
-type SupabaseAny = SupabaseClient<unknown, unknown, unknown>;
+type SupabaseAny = SupabaseClient<any, any, any>;
 
 const MONTH_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",
