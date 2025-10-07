@@ -164,7 +164,9 @@ export async function createTransaction(options: {
     amount: Number(data.amount),
     type: data.type,
     description: data.description,
-    category: data.category?.name ?? categoryNameResolved,
+    category: (Array.isArray(data.category)
+      ? data.category[0]?.name
+      : (data.category as { name?: string } | null)?.name) ?? categoryNameResolved,
     transactionDate: data.transaction_date,
     createdAt: data.created_at,
   };
